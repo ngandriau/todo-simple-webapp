@@ -1,0 +1,119 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.gradle.api.plugins:gradle-cargo-plugin:1.4'
+    }
+}
+
+
+apply plugin: 'java'
+apply plugin: 'war'
+apply plugin: "cargo"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    providedCompile 'javax.servlet:servlet-api:2.5',
+            'javax.servlet.jsp:jsp-api:2.1'
+    runtime 'javax.servlet:jstl:1.1.2',
+            'taglibs:standard:1.1.2'
+}
+
+
+
+//ensure the output file exist or cargo will fail
+ext.cargoOutputFile = file("$buildDir/output.log")
+cargoOutputFile.createNewFile()
+
+ext.tomcatPort = 9090
+ext.tomcatAjpPort = 9099
+
+cargo {
+    containerId = 'tomcat7x'
+    port = tomcatPort
+
+
+    local {
+
+//      Use Local install if the zipDownloader  does not work
+//        homeDir = file('/usr/tools/tomcat/apache-tomcat-7.0.47-forCargo')
+
+        installer {
+            installUrl = 'http://apache.osuosl.org/tomcat/tomcat-7/v7.0.52/bin/apache-tomcat-7.0.52.zip'
+            downloadDir = file("$buildDir/download")
+            extractDir = file("$buildDir/extract")
+        }
+
+        output = cargoOutputFile
+
+        timeout = 1 * 60 * 60 * 1000
+
+        containerProperties {
+            property 'cargo.tomcat.ajp.port', tomcatAjpPort
+        }
+
+        deployable {
+            file = file("$buildDir/libs/todo-simple-webapp.war")
+            context = 'todo'
+        }
+
+//        With this, the files are copied, but they are not found by the webapp :-(
+//        extraClasspath = files(
+//                'src/config/com.hybris.oms_oms-rest-webapp-logback.xml',
+//                'src/config/com.hybris.oms_oms-rest-webapp.properties')
+
+//        With this, the files are copied, but they are not found by the webapp :-(
+//        sharedClasspath = files("src/config")
+//        sharedClasspath = files('src/config/filename.properties')
+
+
+//        This work if you want to deploy the mysql jdbc driver to oms
+//        sharedClasspath = files('src/dependencies/mysql-connector-java-5.1.20.jar')
+
+//        file {
+//            file = file('src/config/com.hybris.oms_oms-rest-webapp-logback.xml')
+//            toDir = file('lib')
+//        }
+
+
+//        extraClasspath = files("shared/classes")
+//        sharedClasspath = files("shared/classes")
+//        sharedClasspath = files("$buildDir/../src/config")
+
+//        configFile {
+//            file = file('src/config/filename.properties')
+//            toDir = file('conf/props')
+//        }
+//
+//
+//        // copy deep - does not add to classpath
+//        file {
+//            file = file('src/config/filename.properties')
+//            toDir = file('shared/classes')
+//        }
+    }
+}
+
+
+
+
+// this is configuration for the output generated during test execution.
+// cf http://forums.gradle.org/gradle/topics/whats_new_in_gradle_1_1_test_logging
+// !!!It has been introduced in gradle 1.1, so update your gradle version if it fails
+tasks.withType(Test) {
+    testLogging {
+        events "passed", "failed", "skipped", "standardOut", "standardError"
+        showExceptions true
+    }
+}
+
+// cf http:// www.gradle.org / docs / current / userguide / gradle_wrapper.html
+task wrapper(type: Wrapper) {
+    gradleVersion "1.10"
+}
+
