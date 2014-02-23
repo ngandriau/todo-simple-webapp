@@ -30,7 +30,12 @@ task createCargoOutput << {
     cargoOutputFile.createNewFile()
 }
 
-tasks.cargoRunLocal.dependsOn createCargoOutput, assemble
+task taskJarConfig(type:Jar){
+    from ("src/config")
+    archiveName 'config.jar'
+}
+
+tasks.cargoRunLocal.dependsOn createCargoOutput, assemble, taskJarConfig
 
 ext.tomcatPort = 9090
 ext.tomcatAjpPort = 9099
@@ -81,8 +86,8 @@ cargo {
 //            toDir = file('lib')
 //        }
 
-        extraClasspath = files("/home/ngandriau/Projects/IdeaProjects/gradleSamples/todo-simple-webapp/src/config")
-        extraClasspath = files("shared/classes")
+        extraClasspath = files("$buildDir/libs/config.jar")
+//        extraClasspath = files("shared/classes")
 //        sharedClasspath = files("shared/classes")
 //        sharedClasspath = files("$buildDir/../src/config")
 
