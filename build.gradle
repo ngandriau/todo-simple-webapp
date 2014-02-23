@@ -24,11 +24,13 @@ dependencies {
             'taglibs:standard:1.1.2'
 }
 
-
-
 //ensure the output file exist or cargo will fail
 ext.cargoOutputFile = file("$buildDir/output.log")
-cargoOutputFile.createNewFile()
+task createCargoOutput << {
+    cargoOutputFile.createNewFile()
+}
+
+tasks.cargoRunLocal.dependsOn createCargoOutput, assemble
 
 ext.tomcatPort = 9090
 ext.tomcatAjpPort = 9099
@@ -71,7 +73,6 @@ cargo {
 //        sharedClasspath = files("src/config")
 //        sharedClasspath = files('src/config/filename.properties')
 
-
 //        This work if you want to deploy the mysql jdbc driver to oms
 //        sharedClasspath = files('src/dependencies/mysql-connector-java-5.1.20.jar')
 
@@ -80,8 +81,8 @@ cargo {
 //            toDir = file('lib')
 //        }
 
-
-//        extraClasspath = files("shared/classes")
+        extraClasspath = files("/home/ngandriau/Projects/IdeaProjects/gradleSamples/todo-simple-webapp/src/config")
+        extraClasspath = files("shared/classes")
 //        sharedClasspath = files("shared/classes")
 //        sharedClasspath = files("$buildDir/../src/config")
 
@@ -98,9 +99,6 @@ cargo {
 //        }
     }
 }
-
-
-
 
 // this is configuration for the output generated during test execution.
 // cf http://forums.gradle.org/gradle/topics/whats_new_in_gradle_1_1_test_logging
